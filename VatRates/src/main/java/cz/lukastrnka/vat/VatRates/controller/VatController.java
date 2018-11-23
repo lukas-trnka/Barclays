@@ -44,23 +44,59 @@ public class VatController {
 		} catch (JsonParseException e) {
 			System.out.println("JsonParseException: " + e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (JsonMappingException e) {
 			System.out.println("JsonMappingException: " + e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (IOException e) {
 			System.out.println("IOException: " + e.getMessage());
 			e.printStackTrace();
+			return null;
 		}
-		return null;
+
 	}
 
 	/**
-	 * Method returns list of required number of countries with the current lowest
-	 * standard VAT rate.
+	 * Method for configuring how the list of countries should be sorted and
+	 * prepared for comparing of countries.
+	 * 
+	 * @param listOfCountries List of countries
+	 * @param periods         What period should be prepared for comparing the
+	 *                        countries
+	 * @param sortCountries   In which order should the list be sorted
+	 * @return Sorted list of countries
+	 * @throws UnknownPeriodException
+	 * @throws UnknownSortingException
+	 */
+	public List<Country> sortingCriteria(List<Country> listOfCountries, String periods, String sortCountries)
+			throws UnknownPeriodException, UnknownSortingException {
+		if (periods == "current") {
+			listOfCountries = sortPeriods(listOfCountries);
+		} // else if(periods == "upTo2011") sort differently ...
+		else {
+			throw new UnknownPeriodException(periods);
+		}
+
+		if (sortCountries == "default") {
+			// no sorting
+		} else if (sortCountries == "AZ") {
+			listOfCountries = sortCountriesAZ(listOfCountries);
+
+		} else {// else if(periods == "ZA") sort differently ...
+			throw new UnknownSortingException(sortCountries);
+		}
+
+		return listOfCountries;
+	}
+
+	/**
+	 * Method returns list of required number of countries with the lowest standard
+	 * VAT rate.
 	 * 
 	 * @param jvd POJO representation of Json-source data
 	 * @param num Number of required countries
-	 * @return List of countries with the lowest standard VAT in ascending order.
+	 * @return List of countries with the lowest standard VAT.
 	 */
 	public List<Country> getLowestStdVAT(JsonVatData jvd, int num) {
 
@@ -72,28 +108,27 @@ public class VatController {
 		return lowestStdVAT;
 	}
 
-	public List<Country> sortData(List<Country> listOfCountries, String periods, String sortCountries) {
-		
-		
-		return listOfCountries;
-	}
-	
-	public List<Country> getLowestStdVAT(JsonVatData jvd, int num, String periods, String sortCountries)
-			throws UnknownPeriodException, UnknownSortingException {
+	/**
+	 * Method returns list of required number of countries with the lowest standard
+	 * VAT rate acording the sorting criteria.
+	 * 
+	 * @param jvd           POJO representation of Json-source data
+	 * @param num           Number of required countries
+	 * @param periods       What period should be prepared for comparing the
+	 *                      countries
+	 * @param sortCountries In which order should the list be sorted
+	 * @return List of countries with the lowest standard VAT in specified order.
+	 */
+	public List<Country> getLowestStdVAT(JsonVatData jvd, int num, String periods, String sortCountries) {
 		List<Country> listOfCountries = jvd.getRates();
-		if (periods == "current") {
-			listOfCountries = sortPeriods(listOfCountries);
-		} // else if(periods == "upTo2011") sort differently ...
-		else {
-			throw new UnknownPeriodException(periods);
-		}
 
-		if (sortCountries == "AZ") {
-			listOfCountries = sortCountries(listOfCountries);
-		} else {// else if(periods == "ZA") sort differently ...
-			throw new UnknownSortingException(sortCountries);
+		try {
+			listOfCountries = sortingCriteria(listOfCountries, periods, sortCountries);
+		} catch (UnknownPeriodException e) {
+			e.printStackTrace();
+		} catch (UnknownSortingException e) {
+			e.printStackTrace();
 		}
-
 		jvd.setRates(listOfCountries);
 
 		List<Country> lowestStdVAT = getLowestStdVAT(jvd, num);
@@ -107,7 +142,7 @@ public class VatController {
 	 * 
 	 * @param jvd POJO representation of Json-source data
 	 * @param num Number of required countries
-	 * @return List of countries with the highest standard VAT in descending order.
+	 * @return List of countries with the highest standard VAT.
 	 */
 	public List<Country> getHighestStdVAT(JsonVatData jvd, int num) {
 		List<Country> listOfCountries = jvd.getRates();
@@ -120,30 +155,26 @@ public class VatController {
 	}
 
 	/**
+	 * Method returns list of required number of countries with the highest standard
+	 * VAT rate acording the sorting criteria.
 	 * 
-	 * @param jvd
-	 * @param num
-	 * @param currentPeriods
-	 * @param alphabetical
-	 * @return
-	 * @throws UnknownPeriodException
-	 * @throws UnknownSortingException
+	 * @param jvd           POJO representation of Json-source data
+	 * @param num           Number of required countries
+	 * @param periods       What period should be prepared for comparing the
+	 *                      countries
+	 * @param sortCountries In which order should the list be sorted
+	 * @return List of countries with the highest standard VAT in specified order.
 	 */
-	public List<Country> getHighestStdVAT(JsonVatData jvd, int num, String periods, String sortCountries)
-			throws UnknownPeriodException, UnknownSortingException {
+	public List<Country> getHighestStdVAT(JsonVatData jvd, int num, String periods, String sortCountries) {
 
 		List<Country> listOfCountries = jvd.getRates();
-		if (periods == "current") {
-			listOfCountries = sortPeriods(listOfCountries);
-		} // else if(periods == "upTo2011") sort differently ...
-		else {
-			throw new UnknownPeriodException(periods);
-		}
 
-		if (sortCountries == "AZ") {
-			listOfCountries = sortCountries(listOfCountries);
-		} else {
-			throw new UnknownSortingException(sortCountries);
+		try {
+			listOfCountries = sortingCriteria(listOfCountries, periods, sortCountries);
+		} catch (UnknownPeriodException e) {
+			e.printStackTrace();
+		} catch (UnknownSortingException e) {
+			e.printStackTrace();
 		}
 
 		jvd.setRates(listOfCountries);
@@ -169,7 +200,6 @@ public class VatController {
 			json = mapper.writeValueAsString(c);
 			return json;
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -177,9 +207,11 @@ public class VatController {
 	}
 
 	/**
+	 * Method for sorting of list of periods in each country. The most current
+	 * period will be first in the list.
 	 * 
-	 * @param countries
-	 * @return
+	 * @param countries List of countries
+	 * @return List of countries
 	 */
 	public List<Country> sortPeriods(List<Country> countries) {
 		countries.forEach(country -> {
@@ -190,11 +222,12 @@ public class VatController {
 	}
 
 	/**
+	 * Sorting countries in alphabetical order from A to Z.
 	 * 
 	 * @param countries
-	 * @return
+	 * @return Alphabetically sorted list of countries.
 	 */
-	public List<Country> sortCountries(List<Country> countries) {
+	public List<Country> sortCountriesAZ(List<Country> countries) {
 		Collections.sort(countries, new CountryComparatorByName());
 
 		return countries;
