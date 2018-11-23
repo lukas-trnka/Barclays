@@ -1,8 +1,10 @@
-package cz.lukastrnka.vat.VatRates.data;
+package cz.lukastrnka.vat.VatRates.data.comparator;
 
 import java.util.Comparator;
 
-public class PeriodsCompareByDateDesc implements Comparator<Period> {
+import cz.lukastrnka.vat.VatRates.data.Period;
+
+public class PeriodsComparatorByDateDesc implements Comparator<Period> {
 
 	public int compare(Period o1, Period o2) {
 		if (o1.getEffective_from().before(o2.getEffective_from()))

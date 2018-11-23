@@ -13,13 +13,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import cz.lukastrnka.vat.VatRates.controller.exceptions.UnknownPeriodException;
+import cz.lukastrnka.vat.VatRates.controller.exceptions.UnknownSortingException;
 import cz.lukastrnka.vat.VatRates.data.Country;
-import cz.lukastrnka.vat.VatRates.data.CountryComparatorByCurrentStdVAT;
 import cz.lukastrnka.vat.VatRates.data.JsonVatData;
+import cz.lukastrnka.vat.VatRates.data.comparator.CountryComparatorByName;
+import cz.lukastrnka.vat.VatRates.data.comparator.CountryComparatorByStdVAT;
+import cz.lukastrnka.vat.VatRates.data.comparator.PeriodsComparatorByDateDesc;
 
 public class VatController {
 
-	/***
+	/**
 	 * Method for downloading source data in Json-format form an URL and parsing
 	 * them into POJO.
 	 * 
@@ -38,22 +42,19 @@ public class VatController {
 			jvd = mapper.readValue(source, JsonVatData.class);
 			return jvd;
 		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
 			System.out.println("JsonParseException: " + e.getMessage());
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
 			System.out.println("JsonMappingException: " + e.getMessage());
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			System.out.println("IOException: " + e.getMessage());
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	/***
+	/**
 	 * Method returns list of required number of countries with the current lowest
 	 * standard VAT rate.
 	 * 
@@ -64,16 +65,45 @@ public class VatController {
 	public List<Country> getLowestStdVAT(JsonVatData jvd, int num) {
 
 		List<Country> listOfCountries = jvd.getRates();
-		Collections.sort(listOfCountries, new CountryComparatorByCurrentStdVAT());
+		Collections.sort(listOfCountries, new CountryComparatorByStdVAT());
 
 		List<Country> lowestStdVAT = listOfCountries.subList(0, Math.min(num, listOfCountries.size()));
 
 		return lowestStdVAT;
 	}
 
-	/***
-	 * Method returns list of required number of countries with the current highest
-	 * standard VAT rate.
+	public List<Country> sortData(List<Country> listOfCountries, String periods, String sortCountries) {
+		
+		
+		return listOfCountries;
+	}
+	
+	public List<Country> getLowestStdVAT(JsonVatData jvd, int num, String periods, String sortCountries)
+			throws UnknownPeriodException, UnknownSortingException {
+		List<Country> listOfCountries = jvd.getRates();
+		if (periods == "current") {
+			listOfCountries = sortPeriods(listOfCountries);
+		} // else if(periods == "upTo2011") sort differently ...
+		else {
+			throw new UnknownPeriodException(periods);
+		}
+
+		if (sortCountries == "AZ") {
+			listOfCountries = sortCountries(listOfCountries);
+		} else {// else if(periods == "ZA") sort differently ...
+			throw new UnknownSortingException(sortCountries);
+		}
+
+		jvd.setRates(listOfCountries);
+
+		List<Country> lowestStdVAT = getLowestStdVAT(jvd, num);
+
+		return lowestStdVAT;
+	}
+
+	/**
+	 * Method returns list of required number of countries with the highest standard
+	 * VAT rate.
 	 * 
 	 * @param jvd POJO representation of Json-source data
 	 * @param num Number of required countries
@@ -81,7 +111,7 @@ public class VatController {
 	 */
 	public List<Country> getHighestStdVAT(JsonVatData jvd, int num) {
 		List<Country> listOfCountries = jvd.getRates();
-		Collections.sort(listOfCountries, new CountryComparatorByCurrentStdVAT());
+		Collections.sort(listOfCountries, new CountryComparatorByStdVAT());
 
 		List<Country> highestStdVAT = listOfCountries.subList(Math.max(listOfCountries.size() - num, 0),
 				listOfCountries.size());
@@ -89,7 +119,40 @@ public class VatController {
 		return highestStdVAT;
 	}
 
-	/***
+	/**
+	 * 
+	 * @param jvd
+	 * @param num
+	 * @param currentPeriods
+	 * @param alphabetical
+	 * @return
+	 * @throws UnknownPeriodException
+	 * @throws UnknownSortingException
+	 */
+	public List<Country> getHighestStdVAT(JsonVatData jvd, int num, String periods, String sortCountries)
+			throws UnknownPeriodException, UnknownSortingException {
+
+		List<Country> listOfCountries = jvd.getRates();
+		if (periods == "current") {
+			listOfCountries = sortPeriods(listOfCountries);
+		} // else if(periods == "upTo2011") sort differently ...
+		else {
+			throw new UnknownPeriodException(periods);
+		}
+
+		if (sortCountries == "AZ") {
+			listOfCountries = sortCountries(listOfCountries);
+		} else {
+			throw new UnknownSortingException(sortCountries);
+		}
+
+		jvd.setRates(listOfCountries);
+		List<Country> highestStdVAT = getHighestStdVAT(jvd, num);
+
+		return highestStdVAT;
+	}
+
+	/**
 	 * Method creates a Json array of given countries
 	 * 
 	 * @param c List of countries
@@ -111,6 +174,30 @@ public class VatController {
 			return null;
 		}
 
+	}
+
+	/**
+	 * 
+	 * @param countries
+	 * @return
+	 */
+	public List<Country> sortPeriods(List<Country> countries) {
+		countries.forEach(country -> {
+			Collections.sort(country.getPeriods(), new PeriodsComparatorByDateDesc());
+		});
+
+		return countries;
+	}
+
+	/**
+	 * 
+	 * @param countries
+	 * @return
+	 */
+	public List<Country> sortCountries(List<Country> countries) {
+		Collections.sort(countries, new CountryComparatorByName());
+
+		return countries;
 	}
 
 }

@@ -9,12 +9,14 @@ import java.util.List;
 
 
 import cz.lukastrnka.vat.VatRates.data.Country;
-import cz.lukastrnka.vat.VatRates.data.CountryComparatorByCurrentStdVAT;
-import cz.lukastrnka.vat.VatRates.data.CountryCompareByName;
 import cz.lukastrnka.vat.VatRates.data.JsonVatData;
 import cz.lukastrnka.vat.VatRates.data.Period;
-import cz.lukastrnka.vat.VatRates.data.PeriodsCompareByDateDesc;
+import cz.lukastrnka.vat.VatRates.data.comparator.CountryComparatorByStdVAT;
+import cz.lukastrnka.vat.VatRates.data.comparator.CountryComparatorByName;
+import cz.lukastrnka.vat.VatRates.data.comparator.PeriodsComparatorByDateDesc;
 import cz.lukastrnka.vat.VatRates.controller.VatController;
+import cz.lukastrnka.vat.VatRates.controller.exceptions.UnknownPeriodException;
+import cz.lukastrnka.vat.VatRates.controller.exceptions.UnknownSortingException;
 
 /**
  * Task: Implement an application in Java capable of printing out three EU
@@ -33,69 +35,104 @@ import cz.lukastrnka.vat.VatRates.controller.VatController;
  */
 
 public class App {
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, UnknownPeriodException, UnknownSortingException {
 
-		VatController vc = new VatController();
-		JsonVatData jvd = vc.loadData(new URL("http://jsonvat.com/"));
+		VatController vCtrl = new VatController();
+		JsonVatData jvData = vCtrl.loadData(new URL("http://jsonvat.com/"));
 
+		
+		// ----- test periods on France
 		int i = 0;
 		System.out.println("-------------");
 		System.out.println("-20  France-");
-		Country france = jvd.getRates().get(20);
+		Country france = jvData.getRates().get(20);
 		System.out.println(" France:" + france.getName());
 		List<Period> pp = france.getPeriods();
 		// Collections.sort(pp, new PeriodsCompareByDateDesc());
 
-		Iterator<Period> cItr3 = pp.iterator();
+		Iterator<Period> cItr1 = pp.iterator();
 
-		while (cItr3.hasNext()) {
+		while (cItr1.hasNext()) {
 			i++;
-			Period a = cItr3.next();
+			Period a = cItr1.next();
 			System.out.println(i + "\tEffective_from: " + a.getEffective_from());
 		}
 		System.out.println("---sorted----");
-		Collections.sort(france.getPeriods(), new PeriodsCompareByDateDesc());
-		Iterator<Period> cItr4 = pp.iterator();
+		Collections.sort(france.getPeriods(), new PeriodsComparatorByDateDesc());
+		Iterator<Period> cItr2 = pp.iterator();
 		i = 0;
-		while (cItr4.hasNext()) {
+		while (cItr2.hasNext()) {
 			i++;
-			Period a = cItr4.next();
+			Period a = cItr2.next();
 			System.out.println(i + "\tEffective_from: " + a.getEffective_from());
 		}
 
 		System.out.println("-------------");
+		
+		// ----- sort all periods
+		List <Country> allCountries = jvData.getRates();
+		jvData.setRates(vCtrl.sortPeriods(allCountries));
+		
+		
+		// ----- low 3
 		System.out.println("-low 3-");
-		Iterator<Country> cItr = vc.getLowestStdVAT(jvd, 3).iterator();
+		Iterator<Country> cItr3 = vCtrl.getLowestStdVAT(jvData, 3).iterator();
 		i = 0;
-		while (cItr.hasNext()) {
+		while (cItr3.hasNext()) {
 			i++;
-			Country a = cItr.next();
+			Country a = cItr3.next();
 			System.out.println(
 					i + "\tVAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: " + a.getName());
 		}
-
+//		System.out.println("-low 3 curr, alpha-");
+//		Iterator<Country> cItr31 = vCtrl.getLowestStdVAT(jvData, 3).iterator();
+//		i = 0;
+//		while (cItr31.hasNext()) {
+//			i++;
+//			Country a = cItr31.next();
+//			System.out.println(
+//					i + "\tVAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: " + a.getName());
+//		}		
+		
+		
+		JsonVatData jvData5 = vCtrl.loadData(new URL("http://jsonvat.com/"));
+		// ----- high 3
 		System.out.println("-------------");
 		System.out.println("-high 3-");
-		Iterator<Country> cItr2 = vc.getHighestStdVAT(jvd, 3).iterator();
+		Iterator<Country> cItr5 = vCtrl.getHighestStdVAT(jvData5, 30).iterator();
 		i = 0;
-		while (cItr2.hasNext()) {
+		while (cItr5.hasNext()) {
 			i++;
-			Country a = cItr2.next();
+			Country a = cItr5.next();
 			System.out.println(
 					i + "\tVAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: " + a.getName());
 		}
 
-		List<Country> cc = vc.getLowestStdVAT(jvd, 3);
-		String json3c = vc.getAsJson(cc);
-		System.out.println("low\n" + json3c);
-		cc = vc.getHighestStdVAT(jvd, 3);
-		json3c = vc.getAsJson(cc);
-		System.out.println("high\n" + json3c);
+		JsonVatData jvData51 = vCtrl.loadData(new URL("http://jsonvat.com/"));
+		System.out.println("-high 3 curr, alpha-");
+		Iterator<Country> cItr51 = vCtrl.getHighestStdVAT(jvData51, 3, "current", "AZ").iterator();
+		i = 0;
+		while (cItr51.hasNext()) {
+			i++;
+			Country a = cItr51.next();
+			System.out.println(
+					i + "\tVAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: " + a.getName());
+		}
 
-		List<Country> allC = jvd.getRates();
-		String jsonAllC = vc.getAsJson(allC);
-
-		System.out.println("all\n" + jsonAllC);
+		
+		
+		// ----- json output
+//		List<Country> cc = vCtrl.getLowestStdVAT(jvData, 3);
+//		String json3c = vCtrl.getAsJson(cc);
+//		System.out.println("low\n" + json3c);
+//		cc = vCtrl.getHighestStdVAT(jvData, 3);
+//		json3c = vCtrl.getAsJson(cc);
+//		System.out.println("high\n" + json3c);
+//
+//		List<Country> allC = jvData.getRates();
+//		String jsonAllC = vCtrl.getAsJson(allC);
+//
+//		System.out.println("all\n" + jsonAllC);
 
 // ----------------		
 
