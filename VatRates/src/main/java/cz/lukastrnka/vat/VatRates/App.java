@@ -38,14 +38,10 @@ public class App {
 		// ================================================
 		System.out.println("-low 3 countries, sorted AZ-");
 		JsonVatData jvData001 = vCtrl.loadData(new URL("http://jsonvat.com/"));
-		Iterator<Country> cItr001 = vCtrl.getLowestStdVAT(jvData001, 3, "current", "AZ").iterator();
-		i = 0;
-		while (cItr001.hasNext()) {
-			i++;
-			Country a = cItr001.next();
-			System.out.println(
-					i + "\tVAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: " + a.getName());
-		}
+		
+		// as text
+		List <Country> cc001 = vCtrl.getHighestStdVAT(jvData001, 3, "current", "AZ");
+		vCtrl.printAsText(cc001);
 
 		// as Json
 		System.out.println("-low 3 countries as Json-");
@@ -58,20 +54,18 @@ public class App {
 
 		JsonVatData jvData002 = vCtrl.loadData(new URL("http://jsonvat.com/"));
 		System.out.println("-high 3 countries, sorted AZ-");
-		Iterator<Country> cItr002 = vCtrl.getHighestStdVAT(jvData002, 3, "current", "AZ").iterator();
-		i = 0;
-		while (cItr002.hasNext()) {
-			i++;
-			Country a = cItr002.next();
-			System.out.println(
-					i + "\tVAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: " + a.getName());
-		}
+		
+		// as text
+		List <Country> cc002 = vCtrl.getHighestStdVAT(jvData002, 3, "current", "AZ");
+		vCtrl.printAsText(cc002);
+				
 		// as Json
 		System.out.println("-low 3 countries as Json-");
 		List<Country> ccHigh = vCtrl.getHighestStdVAT(jvData002, 3);
 		String json3highCountries = vCtrl.getAsJson(ccHigh);
 		System.out.println(json3highCountries);
 		
+		System.out.println("-------------");
 		// as Json 5 countries 
 		
 		System.out.println("-low 5 countries as Json-");

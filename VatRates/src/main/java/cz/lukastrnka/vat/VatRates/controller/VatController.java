@@ -5,6 +5,7 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -204,6 +205,22 @@ public class VatController {
 			return null;
 		}
 
+	}
+
+	/**
+	 * Method prints list of countries into a console
+	 * 
+	 * @param c List of countries
+	 */
+	public void printAsText(List<Country> c) {
+		Iterator<Country> cItr = c.iterator();
+		int i = 0;
+		while (cItr.hasNext()) {
+			i++;
+			Country a = cItr.next();
+			System.out.println(i + "\tStandard VAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: "
+					+ a.getName());
+		}
 	}
 
 	/**
