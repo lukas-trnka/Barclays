@@ -185,7 +185,7 @@ public class VatController {
 	}
 
 	/**
-	 * Method creates a Json array of given countries
+	 * Method creates a Json array of given countries.
 	 * 
 	 * @param c List of countries
 	 * @return Json-format string of countries
@@ -208,7 +208,7 @@ public class VatController {
 	}
 
 	/**
-	 * Method prints list of countries into a console
+	 * Method prints list of countries into a console.
 	 * 
 	 * @param c List of countries
 	 */
@@ -218,8 +218,8 @@ public class VatController {
 		while (cItr.hasNext()) {
 			i++;
 			Country a = cItr.next();
-			System.out.println(i + "\tStandard VAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: "
-					+ a.getName());
+			System.out.print(i + "\tStandard VAT: " + a.getPeriods().get(0).getRates().getStandard() + "\tcountry: "
+					+ a.getName() + "\n");
 		}
 	}
 
