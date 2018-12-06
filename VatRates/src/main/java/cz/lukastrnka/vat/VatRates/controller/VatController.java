@@ -72,19 +72,19 @@ public class VatController {
 	 */
 	public List<Country> sortingCriteria(List<Country> listOfCountries, String periods, String sortCountries)
 			throws UnknownPeriodException, UnknownSortingException {
-		if (periods == "current") {
+		if (periods.equals("current")) {
 			listOfCountries = sortPeriods(listOfCountries);
-		} // else if(periods == "upTo2011") sort differently ...
+		} // else if(periods.equals("upTo2011")) sort differently ...
 		else {
 			throw new UnknownPeriodException(periods);
 		}
 
-		if (sortCountries == "default") {
+		if (sortCountries.equals("default")) {
 			// no sorting
-		} else if (sortCountries == "AZ") {
+		} else if (sortCountries.equals("AZ")) {
 			listOfCountries = sortCountriesAZ(listOfCountries);
 
-		} else {// else if(periods == "ZA") sort differently ...
+		} else {// else if(periods.equals ("ZA")) sort differently ...
 			throw new UnknownSortingException(sortCountries);
 		}
 
